@@ -7,7 +7,7 @@ HOST_REMOTO="192.168.13.1"      # Dirección IP o nombre del equipo remoto
 SCRIPT_REMOTO="Escritorio/script.sh"  # Ruta al script en el equipo remoto
 RUTA_JSON_REMOTO="/home/alumno/system_info.json"  # Ruta al JSON generado por el script remoto
 RUTA_LOCAL="/Users/alber/Downloads"        # Ruta en el equipo anfitrión para guardar el JSON
-PASSWORD="a"        # Contraseña de sudo del equipo remoto
+PASSWORD=""        # Contraseña de sudo del equipo remoto
 
 # 1. Verificar si existe una clave SSH local
 if [ ! -f "/Users/alber/.ssh/id_rsa.pub" ]; then
