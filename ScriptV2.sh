@@ -15,7 +15,7 @@ USO_CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/., *\([0-9.]\)%* id.*/\1/" | awk '{p
 ERRORES_SISTEMA=$(grep -i "error" /var/log/syslog | tail -n 10)
 
 # Verificar errores de almacenamiento
-ERRORES_ALMACENAMIENTO=$(dmesg | grep -i "error" | tail -n 10)
+ERRORES_ALMACENAMIENTO=$(dmesg | grep -i "Error" | tail -n 10)
 
 # Estado SMART de los discos
 SMART_DISCOS=$(smartctl -a /dev/sda | grep -i "smart overall-health self-assessment test result:")
