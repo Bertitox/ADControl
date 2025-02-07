@@ -12,7 +12,7 @@ MEM_DISP=$(free -m | awk '/^Mem:/{print $7}')
 USO_CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/., *\([0-9.]\)%* id.*/\1/" | awk '{print 100 - $1"%"}')
 
 # Verificar errores de sistema
-ERRORES_SISTEMA=$(grep -i "error" /var/log/syslog | tail -n 10)
+ERRORES_SISTEMA=$(journalctl -p 3 -n 10 --no-pager)
 
 # Verificar errores de almacenamiento
 ERRORES_ALMACENAMIENTO=$(dmesg | grep -i "Error" | tail -n 10)
