@@ -10,6 +10,7 @@ PROCESADOR=$(uname -p)
 MEM_TOTAL=$(free -m | awk '/^Mem:/{print $2}') 
 MEM_DISP=$(free -m | awk '/^Mem:/{print $7}') 
 USO_CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}')
+MAC=$(ifconfig en0 | grep ether | awk '{print $2}')
 
 # Crear un archivo JSON con la información
 cat <<EOF > system_info.json
@@ -20,6 +21,7 @@ cat <<EOF > system_info.json
   "Version": "$VERSION",
   "Arquitectura": "$ARQUITECTURA",
   "Procesador": "$PROCESADOR",
+  "MAC": "$MAC",
   "Memoria_Total_MB": "$MEM_TOTAL",
   "Memoria_Disponible_MB": "$MEM_DISP",
   "Uso_CPU": "$USO_CPU",
