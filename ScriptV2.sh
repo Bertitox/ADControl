@@ -9,16 +9,15 @@ ARQUITECTURA=$(uname -m)
 PROCESADOR=$(uname -p) 
 MEM_TOTAL=$(free -m | awk '/^Mem:/{print $2}') 
 MEM_DISP=$(free -m | awk '/^Mem:/{print $7}') 
-USO_CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/., *\([0-9.]\)%* id.*/\1/" | awk '{print 100 - $1"%"}')
+USO_CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}')
 
-# Verificar errores de sistema
-ERRORES_SISTEMA=$(journalctl -p 3 -n 10 --no-pager)
-
-# Verificar errores de almacenamiento
-ERRORES_ALMACENAMIENTO=$(dmesg | grep -i "Error" | tail -n 10)
-
-# Estado SMART de los discos
-SMART_DISCOS=$(smartctl -a /dev/sda | grep -i "smart overall-health self-assessment test result:")
+if [[ "$SO" == "Darwin" ]]; then
+  MAC=$(ifconfig en0 | grep ether | awk '{print $2}')
+  IP=$(ipconfig getifaddr en0)
+else
+  MAC=$(ip link | awk '/ether/ {print $2; exit}')
+  IP=$(hostname -I | awk '{print $1}')
+fi
 
 # Crear un archivo JSON con la información
 cat <<EOF > system_info.json
@@ -29,20 +28,31 @@ cat <<EOF > system_info.json
   "Version": "$VERSION",
   "Arquitectura": "$ARQUITECTURA",
   "Procesador": "$PROCESADOR",
+  "MAC": "$MAC",
+  "IP": "$IP",
   "Memoria_Total_MB": "$MEM_TOTAL",
   "Memoria_Disponible_MB": "$MEM_DISP",
   "Uso_CPU": "$USO_CPU",
-  "Errores_Sistema": "$ERRORES_SISTEMA",
-  "Errores_Almacenamiento": "$ERRORES_ALMACENAMIENTO",
-  "Estado_SMART_Discos": "$SMART_DISCOS",
   "Discos": [
 EOF
 
-# Agregar la información de los discos
+# Obtener las líneas de discos y contarlas
 DISCOS=$(df -h | awk 'NR==1 || /^\/dev\// {print "{\"Disco\": \""$1"\", \"Tamaño\": \""$2"\", \"Usado\": \""$3"\", \"Disponible\": \""$4"\", \"Porcentaje\": \""$5"\"}"}')
-echo "$DISCOS" >> system_info.json
+DISCO_COUNT=$(echo "$DISCOS" | wc -l)
+CURRENT=1
+
+# Recorrer y escribir cada disco, añadiendo coma excepto en el último
+echo "$DISCOS" | while read -r LINE; do
+  if [ "$CURRENT" -lt "$DISCO_COUNT" ]; then
+    echo "    $LINE," >> system_info.json
+  else
+    echo "    $LINE" >> system_info.json
+  fi
+  CURRENT=$((CURRENT+1))
+done
 
 # Cerrar el JSON
-echo "]}" >> system_info.json
+echo "  ]" >> system_info.json
+echo "}" >> system_info.json
 
 echo "Información guardada en system_info.json"
